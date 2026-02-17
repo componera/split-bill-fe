@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { io, Socket } from "socket.io-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+let socket: Socket;
 
 interface User {
 	id: string;
@@ -25,24 +28,27 @@ export default function StaffPage() {
 
 	const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : "";
 
-	const loadData = async () => {
-		const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/staff`, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		});
-
-		const data = await res.json();
-		setUsers(data.users);
-		setInvites(data.invites);
-	};
-
 	useEffect(() => {
-		loadData();
-	}, []);
+		// Wrap the async logic inside the effect itself
+		const fetchData = async () => {
+			const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : "";
+			if (!token) return;
+
+			const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/staff`, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			const data = await res.json();
+			setUsers(data.users);
+			setInvites(data.invites);
+		};
+
+		fetchData();
+	}, []); // Only runs once
 
 	const inviteStaff = async () => {
 		setLoading(true);
+		const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : "";
+		if (!token) return;
 
 		await fetch(`${process.env.NEXT_PUBLIC_API_URL}/staff/invite`, {
 			method: "POST",
@@ -54,11 +60,23 @@ export default function StaffPage() {
 		});
 
 		setEmail("");
-		await loadData();
+
+		// Refresh staff/invite list after invite
+		const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/staff`, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
+		const data = await res.json();
+		setUsers(data.users);
+		setInvites(data.invites);
+
 		setLoading(false);
 	};
 
 	const revokeInvite = async (id: string) => {
+		const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : "";
+		if (!token) return;
+
+		// Delete the invite
 		await fetch(`${process.env.NEXT_PUBLIC_API_URL}/staff/invite/${id}`, {
 			method: "DELETE",
 			headers: {
@@ -66,10 +84,20 @@ export default function StaffPage() {
 			},
 		});
 
-		await loadData();
+		// Reload staff and invites safely
+		const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/staff`, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
+		const data = await res.json();
+
+		// Update state
+		setUsers(data.users);
+		setInvites(data.invites);
 	};
 
 	const resendInvite = async (inviteId: string) => {
+		if (!token) return;
+
 		await fetch(`${process.env.NEXT_PUBLIC_API_URL}/staff/resend`, {
 			method: "POST",
 			headers: {
@@ -86,7 +114,6 @@ export default function StaffPage() {
 		<div className="p-6 max-w-5xl mx-auto space-y-8">
 			<h1 className="text-3xl font-bold">Staff Management</h1>
 
-			{/* Invite Section */}
 			<Card>
 				<CardContent className="p-6 space-y-4">
 					<h2 className="text-xl font-semibold">Invite Staff Member</h2>
@@ -100,7 +127,6 @@ export default function StaffPage() {
 				</CardContent>
 			</Card>
 
-			{/* Active Staff */}
 			<Card>
 				<CardContent className="p-6">
 					<h2 className="text-xl font-semibold mb-4">Active Staff</h2>
@@ -114,7 +140,6 @@ export default function StaffPage() {
 				</CardContent>
 			</Card>
 
-			{/* Pending Invites */}
 			<Card>
 				<CardContent className="p-6">
 					<h2 className="text-xl font-semibold mb-4">Pending Invites</h2>
