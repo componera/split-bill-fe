@@ -23,7 +23,7 @@ export default function HomePage() {
 	return (
 		<div className="flex min-h-screen flex-col items-center justify-center bg-white dark:bg-black gap-8">
 			{/* Logo */}
-			<Image src="/divvy-tab-logo.png" alt="DivvyTab Logo" width={200} height={80} priority />
+			<Image src="/divvy-tab-logo.png" alt="DivvyTab Logo" width={460} priority />
 
 			{/* Login button only if not logged in */}
 			{!user && (
