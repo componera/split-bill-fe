@@ -1,6 +1,6 @@
 import "./globals.css";
 import { ReactNode } from "react";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from "../components/ThemeProvider";
 
 export const metadata = {
 	title: "Bill Splitting SaaS",
@@ -9,9 +9,9 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		<html lang="en" className="dark">
+		<html lang="en" suppressHydrationWarning>
 			<body>
-				<ThemeProvider attribute="class">{children}</ThemeProvider>
+				<ThemeProvider>{children}</ThemeProvider>
 			</body>
 		</html>
 	);

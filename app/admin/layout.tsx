@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const menuItems = [
 	{
@@ -27,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 			{/* Sidebar */}
 			<aside className="w-64 bg-gray-900 border-r border-gray-800">
 				<div className="p-6 border-b border-gray-800 font-bold text-lg">Admin Panel</div>
-
+				<ThemeToggle />
 				<nav className="p-4 space-y-2">
 					{menuItems.map(item => {
 						const Icon = item.icon;
