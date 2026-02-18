@@ -10,12 +10,13 @@ type SquareTokenResponse = {
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== "POST") return res.status(405).end();
+    if (req.method !== "POST" && req.method !== "GET") return res.status(405).end();
 
-    const { code } = req.body;
+    // Get the code from query (for GET) or body (for POST)
+    const code = req.method === "POST" ? req.body.code : req.query.code;
     const clientId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
     const clientSecret = process.env.NEXT_PUBLIC_SQUARE_APP_SECRET;
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/`;
+    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/admin/pos`;
     const squareAuthBaseUrl = process.env.NEXT_PUBLIC_SQUARE_BASE_URL;
 
     // Exchange code for access token
@@ -35,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (tokenData.access_token) {
         // Save access token to your NestJS backend
-        const saveRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurants/square-auth`, {
+        const saveRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/square/auth`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
