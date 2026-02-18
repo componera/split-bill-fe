@@ -121,8 +121,14 @@ export default function SquareConnectButton() {
 		const clientId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
 		const squareAuthBaseUrl = `${process.env.NEXT_PUBLIC_SQUARE_BASE_URL}/oauth2/authorize`;
 		const redirectUri = `${window.location.origin}/admin/pos`;
-		const squareAuthUrl = `${squareAuthBaseUrl}?client_id=${clientId}&response_type=code&scope=PAYMENTS_READ+PAYMENTS_WRITE+ORDERS_READ+ORDERS_WRITE+ITEMS_READ+ITEMS_WRITE+CUSTOMERS_READ+CUSTOMERS_WRITE&redirect_uri=${encodeURIComponent(redirectUri)}`;
-		window.location.href = squareAuthUrl;
+
+		const squareAuthUrl =
+			`${squareAuthBaseUrl}?client_id=${clientId}` +
+			`&response_type=code` +
+			`&scope=PAYMENTS_READ+PAYMENTS_WRITE+ORDERS_READ+ORDERS_WRITE+ITEMS_READ+ITEMS_WRITE+CUSTOMERS_READ+CUSTOMERS_WRITE` +
+			`&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+		window.open(squareAuthUrl, "_top");
 	};
 
 	/** UI */
