@@ -120,7 +120,7 @@ export default function SquareConnectButton() {
 	/** Start OAuth flow */
 	const handleConnect = () => {
 		const clientId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
-		const squareAuthBaseUrl = process.env.NEXT_PUBLIC_SQUARE_AUTH_BASE_URL;
+		const squareAuthBaseUrl = process.env.NEXT_PUBLIC_SQUARE_BASE_URL;
 		const redirectUri = `${window.location.origin}/admin/pos`;
 		const scope = "PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE ITEMS_READ ITEMS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE";
 
