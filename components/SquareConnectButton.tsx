@@ -40,7 +40,7 @@ export default function SquareConnectButton() {
 			`${squareAuthBaseUrl}/oauth2/authorize` +
 			`?client_id=${clientId}` +
 			`&response_type=code` +
-			`&scope=PAYMENTS_READ+PAYMENTS_WRITE` +
+			`&scope=PAYMENTS_READ%20PAYMENTS_WRITE%20ORDERS_READ%20ORDERS_WRITE%20CUSTOMERS_READ%20CUSTOMERS_WRITE%20ITEMS_READ%20ITEMS_WRITE` +
 			`&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
 		window.location.href = squareAuthUrl;
