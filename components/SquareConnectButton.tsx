@@ -24,7 +24,7 @@ export default function SquareConnectButton() {
 	const handleConnect = () => {
 		const clientId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
 		const redirectUri = `${window.location.origin}/`; // redirect back to homepage
-		const squareAuthUrl = `https://connect.squareup.com/oauth2/authorize?client_id=${clientId}&response_type=code&scope=PAYMENTS_READ+PAYMENTS_WRITE&redirect_uri=${encodeURIComponent(redirectUri)}`;
+		const squareAuthUrl = `https://connect.squareupsandbox.com/oauth2/authorize?client_id=${clientId}&response_type=code&scope=PAYMENTS_READ+PAYMENTS_WRITE&redirect_uri=${encodeURIComponent(redirectUri)}`;
 		window.location.href = squareAuthUrl;
 	};
 
