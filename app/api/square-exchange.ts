@@ -13,10 +13,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== "POST") return res.status(405).end();
 
     const { code } = req.body;
-    const clientId = process.env.SQUARE_APP_ID;
-    const clientSecret = process.env.SQUARE_APP_SECRET;
+    const clientId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
+    const clientSecret = process.env.NEXT_PUBLIC_SQUARE_APP_SECRET;
     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/`;
-    const squareAuthBaseUrl = process.env.SQUARE_BASE_URL;
+    const squareAuthBaseUrl = process.env.NEXT_PUBLIC_SQUARE_BASE_URL;
 
     // Exchange code for access token
     const tokenRes = await fetch(`${squareAuthBaseUrl}/oauth2/token`, {
