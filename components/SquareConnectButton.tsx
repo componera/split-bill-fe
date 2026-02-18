@@ -24,7 +24,7 @@ export default function SquareConnectButton() {
 	useEffect(() => {
 		const checkConnection = async () => {
 			try {
-				const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/square/locations`);
+				const res = await apiFetch("/square/locations");
 
 				if (res.ok) {
 					const data: SquareLocation[] = await res.json();
