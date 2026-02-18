@@ -1,16 +1,17 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Receipt, CreditCard, LogOut } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard, Users, Terminal, Receipt, CreditCard, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 const MENU_ITEMS = [
-	{ id: 'dashboard', name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-	{ id: 'staff', name: 'Staff', href: '/admin/staff', icon: Users },
-	{ id: 'bills', name: 'Bills', href: '/admin/bills', icon: Receipt },
-	{ id: 'payments', name: 'Payments', href: '/admin/payments', icon: CreditCard },
+	{ id: "dashboard", name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+	{ id: "pos", name: "Connect POS", href: "/admin/pos", icon: Terminal },
+	{ id: "staff", name: "Staff", href: "/admin/staff", icon: Users },
+	{ id: "bills", name: "Bills", href: "/admin/bills", icon: Receipt },
+	{ id: "payments", name: "Payments", href: "/admin/payments", icon: CreditCard },
 ];
 
 /** Admin sidebar - nav links and logout. Fixed to viewport height. */
@@ -28,8 +29,8 @@ export default function AdminSidebar() {
 				{MENU_ITEMS.map(({ id, name, href, icon: Icon }) => {
 					const active = pathname === href;
 					const linkClass = active
-						? 'bg-primary text-primary-foreground shadow-md'
-						: 'text-muted-foreground hover:bg-primary/10 hover:text-foreground';
+						? "bg-primary text-primary-foreground shadow-md"
+						: "text-muted-foreground hover:bg-primary/10 hover:text-foreground";
 					return (
 						<Link
 							key={id}
