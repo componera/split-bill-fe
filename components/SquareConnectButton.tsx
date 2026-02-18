@@ -120,11 +120,12 @@ export default function SquareConnectButton() {
 	/** Start OAuth flow */
 	const handleConnect = () => {
 		const clientId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
+		const squareAuthBaseUrl = process.env.NEXT_PUBLIC_SQUARE_AUTH_BASE_URL;
 		const redirectUri = `${window.location.origin}/admin/pos`;
 		const scope = "PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE ITEMS_READ ITEMS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE";
 
 		const url =
-			`https://connect.squareup.com/oauth2/authorize` +
+			`${squareAuthBaseUrl}` +
 			`?client_id=${clientId}` +
 			`&response_type=code` +
 			`&scope=${encodeURIComponent(scope)}` +
