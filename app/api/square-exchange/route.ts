@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/api";
 import { NextRequest, NextResponse } from "next/server";
 
 // Define type for Square token response
@@ -71,8 +72,7 @@ export async function POST(req: NextRequest) {
         });
 
         // Save to NestJS backend
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://backend.divvytab.com";
-        const saveRes = await fetch(`${backendUrl}/square/auth`, {
+        const saveRes = await apiFetch("/square/auth", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
