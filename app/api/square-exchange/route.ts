@@ -45,15 +45,14 @@ export async function POST(req: NextRequest) {
             return NextResponse.json(tokenData, { status: 400 });
         }
 
-        const cookieStore = cookies();
-        const token = (await cookieStore).get("access_token")?.value;
+        const jwt = localStorage.getItem("access_token"); // your app JWT
 
         // 2️⃣ Save auth details to NestJS backend
         const saveRes = await fetch("https://backend.divvytab.com/square/auth", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`, // Pass existing JWT for authentication
+                Authorization: `Bearer ${jwt}`, // Pass existing JWT for authentication
             },
             credentials: "include",
             body: JSON.stringify({
