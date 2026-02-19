@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 type SquareTokenResponse = {
     access_token: string;
@@ -22,10 +23,16 @@ export async function POST(req: NextRequest) {
         const clientSecret = process.env.SQUARE_APP_SECRET;  // server-
         const redirectUri = "https://www.divvytab.com/admin/pos"; // must match Square dashboard
 
+        const cookieStore = cookies();
+        const token = (await cookieStore).get("access_token")?.value;
+
         // 1️⃣ Exchange code for access token
         const tokenRes = await fetch("https://connect.squareup.com/oauth2/token", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
             body: JSON.stringify({
                 client_id: clientId,
                 client_secret: clientSecret,
