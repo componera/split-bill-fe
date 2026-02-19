@@ -18,8 +18,10 @@ export async function POST(req: NextRequest) {
         }
 
         // Server-side secrets only
-        const clientId = process.env.SQUARE_APP_ID;          // server-only
-        const clientSecret = process.env.SQUARE_APP_SECRET;  // server-only
+        // const clientId = process.env.SQUARE_APP_ID;          // server-only
+        // const clientSecret = process.env.SQUARE_APP_SECRET;  // server-
+        const clientId = 'sq0idp-_enM92377lWAk9f7Y6E2xA'; // Hardcoded for testing - replace with env vars in production
+        const clientSecret = 'sq0csp-Xo0m7D_cPxq4fLixM-ihmF2UmZSXKG3F5_FT6x_u6tQ'; // Hardcoded for testing - replace with env vars in production
         const redirectUri = "https://www.divvytab.com/admin/pos"; // must match Square dashboard
 
         // 1️⃣ Exchange code for access token
