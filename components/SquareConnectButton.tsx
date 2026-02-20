@@ -8,7 +8,7 @@ export default function SquareConnectButton() {
 	const handleConnect = () => {
 		const clientId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
 		const squareAuthBaseUrl = `${process.env.NEXT_PUBLIC_SQUARE_BASE_URL}/oauth2/authorize`;
-		const redirectUri = `${window.location.origin}/admin/pos`;
+		const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/admin/pos`;
 		const scope = [
 			"PAYMENTS_READ",
 			"PAYMENTS_WRITE",

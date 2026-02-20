@@ -26,7 +26,7 @@ export default function AdminPosPage() {
 				if (!res.ok) throw new Error("Failed to connect Square");
 
 				// Optional: refresh access_token after redirect
-				await fetch("/auth/refresh", { method: "POST", credentials: "include" });
+				await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`, { method: "POST", credentials: "include" });
 
 				setStatus("connected");
 				window.history.replaceState({}, document.title, "/admin/pos");

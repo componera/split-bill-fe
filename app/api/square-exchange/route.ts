@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
                 client_secret: process.env.SQUARE_CLIENT_SECRET,
                 code,
                 grant_type: "authorization_code",
-                redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL}/admin/pos`, // must match Square app settings
+                redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/admin/pos`, // must match Square app settings
             }),
         });
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         const tokenData = await tokenRes.json();
 
         // Forward to your backend to save Square tokens
-        const saveRes = await fetch("https://backend.divvytab.com/square/auth", {
+        const saveRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/square/auth`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
