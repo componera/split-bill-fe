@@ -19,23 +19,23 @@ export async function POST(req: NextRequest) {
                 client_secret: process.env.SQUARE_CLIENT_SECRET,
                 code,
                 grant_type: "authorization_code",
-                redirect_uri: process.env.NEXT_PUBLIC_APP_URL + "/admin/pos",
+                redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/admin/pos`, // must match Square app
             }),
         });
 
         if (!tokenRes.ok) {
             const text = await tokenRes.text();
-            throw new Error(text || "Failed to get Square tokens");
+            throw new Error(text || "Failed to exchange code for Square tokens");
         }
 
         const tokenData = await tokenRes.json();
 
-        // Forward tokens to your backend to save and fetch locations
+        // Save tokens in backend and populate locations
         const saveRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/square/auth`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                cookie: req.headers.get("cookie") ?? "", // forward user cookies for auth
+                cookie: req.headers.get("cookie") ?? "", // forward HttpOnly cookies for auth
             },
             body: JSON.stringify({
                 squareAccessToken: tokenData.access_token,
@@ -47,10 +47,10 @@ export async function POST(req: NextRequest) {
 
         if (!saveRes.ok) {
             const err = await saveRes.json().catch(() => ({ message: "Failed to save tokens" }));
-            throw new Error(err.message || "Failed to save tokens to backend");
+            throw new Error(err.message || "Failed to save Square tokens in backend");
         }
 
-        // Fetch locations from backend
+        // Fetch restaurant locations from backend
         const locationsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/square/locations`, {
             method: "GET",
             headers: {
@@ -61,11 +61,12 @@ export async function POST(req: NextRequest) {
 
         if (!locationsRes.ok) {
             const err = await locationsRes.json().catch(() => ({ message: "Failed to fetch locations" }));
-            throw new Error(err.message || "Failed to fetch locations from backend");
+            throw new Error(err.message || "Failed to fetch Square locations from backend");
         }
 
         const locations = await locationsRes.json();
 
+        // Return locations for frontend selection
         return NextResponse.json({ success: true, locations });
     } catch (err: any) {
         console.error("Square OAuth exchange failed:", err);
