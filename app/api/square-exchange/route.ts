@@ -51,15 +51,15 @@ export async function POST(req: NextRequest) {
         }
 
         // Forward request to backend with cookies
+        // Forward request to backend with cookies
         const saveRes = await fetch(
             "https://backend.divvytab.com/square/auth",
             {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    // forward cookies from original request
-                    cookie: req.headers.get("cookie") ?? "",
                 },
+                credentials: "include", // <-- critical
                 body: JSON.stringify({
                     squareAccessToken: tokenData.access_token,
                     squareMerchantId: tokenData.merchant_id,
