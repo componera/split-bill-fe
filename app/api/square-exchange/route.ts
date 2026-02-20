@@ -1,15 +1,16 @@
+// /app/api/square-exchange/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-    const body = await req.json();
-    const { code } = body;
-
-    if (!code) {
-        return NextResponse.json({ error: "Missing code" }, { status: 400 });
-    }
-
     try {
-        // Exchange code for tokens from Square server-side
+        const body = await req.json();
+        const { code } = body;
+
+        if (!code) {
+            return NextResponse.json({ error: "Missing code" }, { status: 400 });
+        }
+
+        // Exchange code for Square tokens
         const tokenRes = await fetch("https://connect.squareup.com/oauth2/token", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
                 client_secret: process.env.SQUARE_CLIENT_SECRET,
                 code,
                 grant_type: "authorization_code",
-                redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/admin/pos`, // must match Square app settings
+                redirect_uri: process.env.NEXT_PUBLIC_APP_URL + "/admin/pos",
             }),
         });
 
@@ -29,12 +30,12 @@ export async function POST(req: NextRequest) {
 
         const tokenData = await tokenRes.json();
 
-        // Forward to your backend to save Square tokens
+        // Forward tokens to your backend to save and fetch locations
         const saveRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/square/auth`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                cookie: req.headers.get("cookie") ?? "", // pass user's cookies
+                cookie: req.headers.get("cookie") ?? "", // forward user cookies for auth
             },
             body: JSON.stringify({
                 squareAccessToken: tokenData.access_token,
@@ -45,11 +46,27 @@ export async function POST(req: NextRequest) {
         });
 
         if (!saveRes.ok) {
-            const err = await saveRes.json();
-            throw new Error(err.message || "Failed to save auth to backend");
+            const err = await saveRes.json().catch(() => ({ message: "Failed to save tokens" }));
+            throw new Error(err.message || "Failed to save tokens to backend");
         }
 
-        return NextResponse.json({ success: true });
+        // Fetch locations from backend
+        const locationsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/square/locations`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                cookie: req.headers.get("cookie") ?? "",
+            },
+        });
+
+        if (!locationsRes.ok) {
+            const err = await locationsRes.json().catch(() => ({ message: "Failed to fetch locations" }));
+            throw new Error(err.message || "Failed to fetch locations from backend");
+        }
+
+        const locations = await locationsRes.json();
+
+        return NextResponse.json({ success: true, locations });
     } catch (err: any) {
         console.error("Square OAuth exchange failed:", err);
         return NextResponse.json({ error: err.message }, { status: 500 });

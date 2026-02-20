@@ -2,33 +2,41 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import SquareConnectButton from "@/components/SquareConnectButton";
+import SelectSquareLocation from "@/components/SelectSquareLocation";
+import { SquareLocation } from "@/types/square";
 
 export default function AdminPosPage() {
 	const searchParams = useSearchParams();
 	const code = searchParams.get("code");
-	const [status, setStatus] = useState<"idle" | "loading" | "connected" | "error">("idle");
+
+	const [locations, setLocations] = useState<SquareLocation[] | null>(null);
+	const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
 
 	useEffect(() => {
+		if (!code) return;
+
 		const exchangeCode = async () => {
-			if (!code) return;
-
 			setStatus("loading");
-
 			try {
 				const res = await fetch("/api/square-exchange", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
-					credentials: "include", // sends cookies
+					credentials: "include",
 					body: JSON.stringify({ code }),
 				});
 
-				if (!res.ok) throw new Error("Failed to connect Square");
+				const data = await res.json();
 
-				// Optional: refresh access_token after redirect
-				await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`, { method: "POST", credentials: "include" });
+				if (!res.ok || data.error) {
+					console.error("Square auth error:", data);
+					setStatus("error");
+					return;
+				}
 
-				setStatus("connected");
+				setLocations(data.locations || []);
+				setStatus("idle");
+
+				// Clean URL
 				window.history.replaceState({}, document.title, "/admin/pos");
 			} catch (err) {
 				console.error(err);
@@ -40,18 +48,14 @@ export default function AdminPosPage() {
 	}, [code]);
 
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-center gap-8 p-8 bg-white dark:bg-black">
+		<div className="flex min-h-screen flex-col items-center justify-center gap-8 p-8">
 			<h1 className="text-2xl font-bold">POS Integration</h1>
 
-			{status === "connected" ? (
-				<div className="text-green-600 font-semibold">✅ Connected to Square!</div>
-			) : status === "loading" ? (
-				<div className="text-gray-600 font-medium">Connecting to Square...</div>
-			) : status === "error" ? (
-				<div className="text-red-600 font-medium">Failed to connect. Please try again.</div>
-			) : (
-				<SquareConnectButton />
-			)}
+			{status === "loading" && <div>Connecting to Square...</div>}
+			{status === "error" && <div className="text-red-600">Failed to connect. Please try again.</div>}
+
+			{locations && locations.length > 0 && <SelectSquareLocation locations={locations} />}
+			{!locations && status === "idle" && <div>Click the button below to connect Square.</div>}
 		</div>
 	);
 }
