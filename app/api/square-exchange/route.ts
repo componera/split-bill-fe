@@ -1,4 +1,3 @@
-// /app/api/square-exchange/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -11,7 +10,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Exchange code for Square tokens
-        const tokenRes = await fetch(`${process.env.SQUARE_API_URL}/oauth2/token`, {
+        const tokenRes = await fetch(`${process.env.NEXT_PUBLIC_SQUARE_BASE_URL}/oauth2/token`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
