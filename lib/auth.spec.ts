@@ -81,26 +81,28 @@ describe("auth (cookie-based)", () => {
 
   describe("logout", () => {
     it("calls logout API and redirects", async () => {
-      // Mock window.location.href setter
-      const locationHrefSpy = vi.spyOn(window.location, "href", "set").mockImplementation(() => { });
+      // Mock fetch
+      (globalThis.fetch as any) = vi.fn().mockResolvedValue({ ok: true });
 
-      // Mock fetch response
-      (fetch as any).mockResolvedValue({ ok: true });
+      // Replace window.location with a writable mock
+      const originalLocation = window.location;
+      delete (window as any).location;
+      (window as any).location = { href: "" };
 
       // Call logout
       await auth.logout();
 
-      // Check fetch called correctly
+      // API should be called
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining("/auth/logout"),
         expect.objectContaining({ method: "POST", credentials: "include" })
       );
 
       // Check redirect
-      expect(locationHrefSpy).toHaveBeenCalledWith("/login");
+      expect(window.location.href).toBe("/login");
 
-      // Restore mock
-      locationHrefSpy.mockRestore();
+      // Restore original location
+      (window as any).location = originalLocation;
     });
   });
 

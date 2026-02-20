@@ -21,6 +21,7 @@ describe("api", () => {
 			const mockBill = { id: "bill-1", items: [] };
 			(globalThis.fetch as any).mockResolvedValue({
 				ok: true,
+				status: 200,
 				json: async () => mockBill,
 			});
 
@@ -34,22 +35,28 @@ describe("api", () => {
 		});
 
 		it("throws on failure", async () => {
-			(globalThis.fetch as any).mockResolvedValue({ ok: false, text: async () => "" });
+			(globalThis.fetch as any).mockResolvedValue({
+				ok: false,
+				status: 400,
+				text: async () => "",
+			});
 
 			await expect(fetchBill("bad-id")).rejects.toThrow("Failed to fetch bill");
 		});
 	});
 
 	describe("payItems", () => {
-		it("sends correct payload", async () => {
+		it("sends correct payload and returns result", async () => {
 			const mockRes = { paymentId: "p1" };
 			(globalThis.fetch as any).mockResolvedValue({
 				ok: true,
+				status: 200,
 				json: async () => mockRes,
 			});
 
-			await payItems("bill-1", ["item-1", "item-2"]);
+			const result = await payItems("bill-1", ["item-1", "item-2"]);
 
+			expect(result).toEqual(mockRes);
 			expect(globalThis.fetch).toHaveBeenCalledWith(
 				expect.stringContaining("/payments"),
 				expect.objectContaining({
@@ -64,7 +71,11 @@ describe("api", () => {
 		});
 
 		it("throws on failure", async () => {
-			(globalThis.fetch as any).mockResolvedValue({ ok: false, text: async () => "" });
+			(globalThis.fetch as any).mockResolvedValue({
+				ok: false,
+				status: 400,
+				text: async () => "",
+			});
 
 			await expect(payItems("bill-1", ["item-1"])).rejects.toThrow("Payment failed");
 		});
@@ -78,6 +89,7 @@ describe("api", () => {
 			};
 			(globalThis.fetch as any).mockResolvedValue({
 				ok: true,
+				status: 200,
 				json: async () => mockData,
 			});
 
@@ -91,7 +103,11 @@ describe("api", () => {
 		});
 
 		it("throws on failure", async () => {
-			(globalThis.fetch as any).mockResolvedValue({ ok: false, text: async () => "" });
+			(globalThis.fetch as any).mockResolvedValue({
+				ok: false,
+				status: 500,
+				text: async () => "",
+			});
 
 			await expect(fetchStaff()).rejects.toThrow("Failed to fetch staff");
 		});
