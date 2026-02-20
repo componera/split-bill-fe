@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
         const clientSecret = process.env.SQUARE_APP_SECRET;  // server-
         const redirectUri = "https://www.divvytab.com/admin/pos"; // must match Square dashboard
 
-        // 1️⃣ Exchange code for access token
+        // Exchange code for access token
         const tokenRes = await fetch("https://connect.squareup.com/oauth2/token", {
             method: "POST",
             headers: {
@@ -45,14 +45,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json(tokenData, { status: 400 });
         }
 
-        const jwt = localStorage.getItem("access_token"); // your app JWT
+        const cookieStore = cookies();
+        const token = (await cookieStore).get("access_token")?.value;
 
-        // 2️⃣ Save auth details to NestJS backend
+        // Save auth details to NestJS backend
         const saveRes = await fetch("https://backend.divvytab.com/square/auth", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${jwt}`, // Pass existing JWT for authentication
+                Authorization: `Bearer ${token}`, // Pass existing JWT for authentication
             },
             credentials: "include",
             body: JSON.stringify({

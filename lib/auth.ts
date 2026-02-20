@@ -1,22 +1,22 @@
 "use client";
 
-import { decodeToken, type JwtPayload } from "./jwt";
+import { serialize } from 'cookie';
 import { API_BASE_URL } from "./constants";
 
-/**
- * Safely get token in browser
- */
-export function getToken(): string | null {
-    if (typeof window === 'undefined') return null; // SSR-safe
-    return localStorage.getItem('accessToken');
-}
 
 /**
  * Safely set token in browser
  */
-export function setToken(token: string) {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem('accessToken', token);
+export function setTokenCookie(res: Response, token: string) {
+    const cookie = serialize('access_token', token, {
+        httpOnly: true,      // not accessible via JS
+        secure: process.env.NODE_ENV === 'production', // send only over HTTPS
+        path: '/',           // available on all routes
+        sameSite: 'lax',     // CSRF protection
+        maxAge: 60 * 60 * 24, // 1 day
+    });
+
+    res.headers.append('Set-Cookie', cookie);
 }
 
 /**
@@ -61,9 +61,12 @@ export function logout() {
 /**
  * Decode JWT to get user info
  */
-export function getUser(): JwtPayload | null {
-    if (typeof window === 'undefined') return null; // SSR-safe
-    const token = getToken();
-    if (!token) return null;
-    return decodeToken(token);
+export async function getUser() {
+    const res = await fetch(`${API_BASE_URL}/auth/me`, {
+        credentials: "include",
+    });
+
+    if (!res.ok) return null;
+
+    return res.json();
 }

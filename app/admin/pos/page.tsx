@@ -12,34 +12,37 @@ export default function AdminPosPage() {
 	useEffect(() => {
 		if (!code) return;
 
-		// wrap in microtask to avoid synchronous state update warning
-		(async () => {
-			setStatus("loading");
+		const exchangeCode = async () => {
+			setStatus("loading"); // wrapped in async function
 
 			try {
 				const res = await fetch("/api/square-exchange", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
-					credentials: "include",
+					credentials: "include", // only if backend uses cookies for JWT
 					body: JSON.stringify({ code }),
 				});
+
 				const data = await res.json();
 
-				if (data.error) {
+				if (!res.ok || data.error) {
 					console.error("Square auth error:", data);
 					setStatus("error");
-				} else {
-					console.log("Square auth saved:", data);
-					setStatus("connected");
-
-					// Remove code from URL
-					window.history.replaceState({}, document.title, "/admin/pos");
+					return;
 				}
+
+				console.log("Square auth saved:", data);
+				setStatus("connected");
+
+				// Clean URL
+				window.history.replaceState({}, document.title, "/admin/pos");
 			} catch (err) {
 				console.error(err);
 				setStatus("error");
 			}
-		})();
+		};
+
+		exchangeCode();
 	}, [code]);
 
 	return (
