@@ -1,38 +1,119 @@
 /**
- * Unit tests for auth utilities
- * Note: These run in Happy DOM which provides window/localStorage
+ * Unit tests for auth utilities (cookie-based)
  */
-import { describe, it, expect, beforeEach } from "bun:test";
-import { getToken, setToken, logout, getUser } from "./auth";
+import { describe, it, expect, beforeEach, afterEach, vi } from "bun:test";
+import * as auth from "./auth";
 
-describe("auth", () => {
+describe("auth (cookie-based)", () => {
+  const originalFetch = globalThis.fetch;
+
   beforeEach(() => {
-    if (typeof window !== "undefined" && window.localStorage) {
-      window.localStorage.clear();
-    }
-  });
-
-  describe("getToken", () => {
-    it("returns null when no token is set", () => {
-      expect(getToken()).toBeNull();
-    });
-
-    it("returns token when set", () => {
-      setToken("my-jwt-token");
-      expect(getToken()).toBe("my-jwt-token");
+    // Mock fetch for all tests
+    globalThis.fetch = vi.fn();
+    // Reset document.cookie if needed
+    Object.defineProperty(document, "cookie", {
+      writable: true,
+      value: "",
     });
   });
 
-  describe("setToken", () => {
-    it("stores token in localStorage", () => {
-      setToken("new-token");
-      expect(getToken()).toBe("new-token");
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.resetAllMocks();
+  });
+
+  describe("register", () => {
+    it("calls the API and returns user data", async () => {
+      const mockResponse = { id: 1, email: "test@example.com" };
+      (fetch as any).mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await auth.register({
+        restaurantName: "Test Restaurant",
+        email: "test@example.com",
+        password: "password123",
+        firstName: "John",
+        lastName: "Doe",
+      });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/auth/register"),
+        expect.objectContaining({ credentials: "include" })
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("throws error when registration fails", async () => {
+      (fetch as any).mockResolvedValue({ ok: false });
+
+      await expect(
+        auth.register({
+          restaurantName: "Test",
+          email: "fail@example.com",
+          password: "123",
+          firstName: "Fail",
+          lastName: "Case",
+        })
+      ).rejects.toThrow("Registration failed");
+    });
+  });
+
+  describe("login", () => {
+    it("logs in successfully and returns user info", async () => {
+      const mockResponse = { id: 1, email: "test@example.com" };
+      (fetch as any).mockResolvedValue({ ok: true, json: async () => mockResponse });
+
+      const result = await auth.login("test@example.com", "password123");
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/auth/login"),
+        expect.objectContaining({ credentials: "include" })
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("throws error when login fails", async () => {
+      (fetch as any).mockResolvedValue({ ok: false });
+      await expect(auth.login("fail@example.com", "123")).rejects.toThrow("Login failed");
+    });
+  });
+
+  describe("logout", () => {
+    it("calls logout API and redirects", async () => {
+      const locationSpy = vi.spyOn(window, "location", "get").mockReturnValue({
+        href: "",
+      } as any);
+      const locationSetSpy = vi.spyOn(window.location, "href", "set").mockImplementation(() => { });
+
+      (fetch as any).mockResolvedValue({ ok: true });
+
+      await auth.logout();
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/auth/logout"),
+        expect.objectContaining({ method: "POST", credentials: "include" })
+      );
+      expect(locationSetSpy).toHaveBeenCalledWith("/login");
+
+      locationSpy.mockRestore();
+      locationSetSpy.mockRestore();
     });
   });
 
   describe("getUser", () => {
-    it("returns null when no token", () => {
-      expect(getUser()).toBeNull();
+    it("returns null when fetch fails", async () => {
+      (fetch as any).mockResolvedValue({ ok: false });
+      const result = await auth.getUser();
+      expect(result).toBeNull();
+    });
+
+    it("returns user info when fetch succeeds", async () => {
+      const mockUser = { id: 1, email: "test@example.com" };
+      (fetch as any).mockResolvedValue({ ok: true, json: async () => mockUser });
+
+      const result = await auth.getUser();
+      expect(result).toEqual(mockUser);
     });
   });
 });
