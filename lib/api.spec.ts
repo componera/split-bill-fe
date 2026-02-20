@@ -16,14 +16,20 @@ describe("api", () => {
 		vi.resetAllMocks();
 	});
 
+	// Helper to create a full Response-like mock
+	const createResponse = (ok: boolean, body: any = {}, status = ok ? 200 : 400) => ({
+		ok,
+		status,
+		statusText: ok ? "OK" : "Bad Request",
+		headers: new Headers(),
+		json: async () => body,
+		text: async () => JSON.stringify(body),
+	});
+
 	describe("fetchBill", () => {
 		it("returns bill data on success", async () => {
 			const mockBill = { id: "bill-1", items: [] };
-			(globalThis.fetch as any).mockResolvedValue({
-				ok: true,
-				status: 200,
-				json: async () => mockBill,
-			});
+			(globalThis.fetch as any).mockResolvedValue(createResponse(true, mockBill));
 
 			const result = await fetchBill("bill-1");
 
@@ -35,11 +41,7 @@ describe("api", () => {
 		});
 
 		it("throws on failure", async () => {
-			(globalThis.fetch as any).mockResolvedValue({
-				ok: false,
-				status: 400,
-				text: async () => "",
-			});
+			(globalThis.fetch as any).mockResolvedValue(createResponse(false));
 
 			await expect(fetchBill("bad-id")).rejects.toThrow("Failed to fetch bill");
 		});
@@ -48,11 +50,7 @@ describe("api", () => {
 	describe("payItems", () => {
 		it("sends correct payload and returns result", async () => {
 			const mockRes = { paymentId: "p1" };
-			(globalThis.fetch as any).mockResolvedValue({
-				ok: true,
-				status: 200,
-				json: async () => mockRes,
-			});
+			(globalThis.fetch as any).mockResolvedValue(createResponse(true, mockRes));
 
 			const result = await payItems("bill-1", ["item-1", "item-2"]);
 
@@ -71,11 +69,7 @@ describe("api", () => {
 		});
 
 		it("throws on failure", async () => {
-			(globalThis.fetch as any).mockResolvedValue({
-				ok: false,
-				status: 400,
-				text: async () => "",
-			});
+			(globalThis.fetch as any).mockResolvedValue(createResponse(false));
 
 			await expect(payItems("bill-1", ["item-1"])).rejects.toThrow("Payment failed");
 		});
@@ -87,11 +81,7 @@ describe("api", () => {
 				users: [{ id: "u1", email: "a@b.com", role: "STAFF" }],
 				invites: [],
 			};
-			(globalThis.fetch as any).mockResolvedValue({
-				ok: true,
-				status: 200,
-				json: async () => mockData,
-			});
+			(globalThis.fetch as any).mockResolvedValue(createResponse(true, mockData));
 
 			const result = await fetchStaff();
 
@@ -103,11 +93,7 @@ describe("api", () => {
 		});
 
 		it("throws on failure", async () => {
-			(globalThis.fetch as any).mockResolvedValue({
-				ok: false,
-				status: 500,
-				text: async () => "",
-			});
+			(globalThis.fetch as any).mockResolvedValue(createResponse(false));
 
 			await expect(fetchStaff()).rejects.toThrow("Failed to fetch staff");
 		});
