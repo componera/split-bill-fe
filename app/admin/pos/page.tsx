@@ -2,12 +2,19 @@
 
 import { useEffect, useState } from "react";
 import SquareConnectButton from "@/components/SquareConnectButton";
-import SelectSquareLocation, { SquareLocation } from "@/components/SelectSquareLocation";
+import SelectSquareLocation from "@/components/SelectSquareLocation";
+
+interface SquareLocation {
+	id: string;
+	name: string;
+	isSelected: boolean;
+}
 
 export default function AdminPosPage() {
 	const [status, setStatus] = useState<"idle" | "loading" | "connected" | "error">("idle");
 	const [locations, setLocations] = useState<SquareLocation[] | null>(null);
 
+	// Read code from query string (Square OAuth redirect)
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
 		const code = params.get("code");
@@ -16,13 +23,15 @@ export default function AdminPosPage() {
 		const exchangeCode = async () => {
 			setStatus("loading");
 			try {
-				const res = await fetch("/api/square-exchange", {
+				const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/square/exchange`, {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
-					credentials: "include",
+					credentials: "include", // cookies for backend auth
 					body: JSON.stringify({ code }),
 				});
+
 				const data = await res.json();
+
 				if (!res.ok || data.error) {
 					console.error("Square auth error:", data);
 					setStatus("error");
@@ -31,9 +40,11 @@ export default function AdminPosPage() {
 
 				setLocations(data.locations ?? []);
 				setStatus("connected");
+
+				// Clean URL so code param disappears
 				window.history.replaceState({}, document.title, "/admin/pos");
 			} catch (err) {
-				console.error(err);
+				console.error("Square exchange failed:", err);
 				setStatus("error");
 			}
 		};
@@ -41,36 +52,21 @@ export default function AdminPosPage() {
 		exchangeCode();
 	}, []);
 
-	const selectLocation = async (locationId: string) => {
-		try {
-			const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/square/select-location`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				credentials: "include",
-				body: JSON.stringify({ locationId }),
-			});
-			if (!res.ok) throw new Error("Failed to save location");
-
-			setLocations(prev => prev?.map(loc => ({ ...loc, isSelected: loc.id === locationId })) ?? null);
-		} catch (err) {
-			console.error(err);
-			alert("Failed to select location. Try again.");
-		}
-	};
-
 	return (
 		<div className="flex min-h-screen flex-col items-center justify-center gap-8 p-8">
 			<h1 className="text-2xl font-bold">POS Integration</h1>
 
 			{status === "loading" && <div>Connecting to Square...</div>}
 			{status === "error" && <div className="text-red-600">Failed to connect. Please try again.</div>}
-			{status === "idle" && (
+
+			{locations && locations.length > 0 && <SelectSquareLocation locations={locations} />}
+
+			{!locations && status === "idle" && (
 				<>
 					<div>Click the button below to connect Square.</div>
 					<SquareConnectButton />
 				</>
 			)}
-			{locations && locations.length > 0 && <SelectSquareLocation locations={locations} onSelect={selectLocation} />}
 		</div>
 	);
 }
