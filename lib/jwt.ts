@@ -1,57 +1,49 @@
 'use client';
 
-import { jwtDecode } from 'jwt-decode';
+import { apiFetch } from './api'; // uses cookies automatically
 
-export interface JwtPayload {
-    sub: string;           // user id
+export type UserRole = 'OWNER' | 'MANAGER' | 'STAFF';
+
+export interface CurrentUser {
+    id: string;
     email: string;
-    role: 'OWNER' | 'MANAGER' | 'STAFF';
-    restaurantId: string;  // multi-tenant isolation
-    exp: number;
+    role: UserRole;
+    restaurantId: string;
 }
 
-export function decodeToken(token: string): JwtPayload | null {
+/**
+ * Fetch the currently logged-in user from the server.
+ * Cookie-based auth means we read the access_token cookie automatically.
+ */
+export async function getCurrentUser(): Promise<CurrentUser | null> {
     try {
-        return jwtDecode<JwtPayload>(token);
+        const user = await apiFetch<CurrentUser>('/auth/me');
+        return user;
     } catch (err) {
-        console.error('Failed to decode JWT:', err);
         return null;
     }
 }
 
 /**
- * Checks if token is expired
+ * Get the current user's role
  */
-export function isTokenExpired(token: string): boolean {
-    const payload = decodeToken(token);
-    if (!payload) return true;
-
-    const now = Math.floor(Date.now() / 1000);
-    return payload.exp < now;
+export async function getUserRole(): Promise<UserRole | null> {
+    const user = await getCurrentUser();
+    return user?.role || null;
 }
 
 /**
- * Get restaurantId from current JWT
+ * Get current restaurantId
  */
-export function getRestaurantId(): string | null {
-    if (typeof window === 'undefined') return null; // SSR-safe
-    const token = localStorage.getItem('accessToken');
-    if (!token) return null;
-
-    const payload = decodeToken(token);
-    if (!payload) return null;
-
-    return payload.restaurantId;
+export async function getRestaurantId(): Promise<string | null> {
+    const user = await getCurrentUser();
+    return user?.restaurantId || null;
 }
 
 /**
- * Get user role from JWT
+ * Check if user is authenticated (has valid cookie)
  */
-export function getUserRole(): JwtPayload['role'] | null {
-    if (typeof window === 'undefined') return null; // SSR-safe
-    const token = localStorage.getItem('accessToken');
-    if (!token) return null;
-
-    const payload = decodeToken(token);
-    return payload?.role || null;
+export async function isAuthenticated(): Promise<boolean> {
+    const user = await getCurrentUser();
+    return !!user;
 }
