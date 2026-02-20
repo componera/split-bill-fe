@@ -16,7 +16,7 @@ export default function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
 
 	useEffect(() => {
 		const checkAuth = async () => {
-			const currentUser = await getUser(); // fetches from /api/auth/me
+			const currentUser = await getUser(); // fetches from /auth/me
 			if (!currentUser) {
 				router.push("/login");
 				return;

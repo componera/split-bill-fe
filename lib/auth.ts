@@ -67,7 +67,7 @@ export async function getUser(): Promise<AuthUser | null> {
     if (typeof window === 'undefined') return null;
 
     try {
-        const res = await fetch('/api/auth/me', {
+        const res = await fetch('/auth/me', {
             credentials: 'include',
         });
 
