@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE_URL } from '@/lib/constants';
 import { create } from 'zustand';
 
 export type UserRole = 'OWNER' | 'MANAGER' | 'STAFF';
@@ -25,7 +26,7 @@ export const useUserStore = create<UserStore>((set) => ({
      */
     refreshUser: async () => {
         try {
-            const res = await fetch('/auth/me', { credentials: 'include' });
+            const res = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
             if (!res.ok) {
                 set({ user: null });
                 return;

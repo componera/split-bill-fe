@@ -1,6 +1,7 @@
 'use client';
 
 import { apiFetch } from './api'; // uses cookies automatically
+import { API_BASE_URL } from './constants';
 
 export type UserRole = 'OWNER' | 'MANAGER' | 'STAFF';
 
@@ -17,7 +18,7 @@ export interface CurrentUser {
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
     try {
-        const user = await apiFetch<CurrentUser>('/auth/me');
+        const user = await apiFetch<CurrentUser>(`${API_BASE_URL}/auth/me`);
         return user;
     } catch (err) {
         return null;
